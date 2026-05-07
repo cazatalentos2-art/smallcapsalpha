@@ -1,0 +1,79 @@
+{
+  "name": "StockScan",
+  "type": "object",
+  "properties": {
+    "scan_type": {
+      "type": "string",
+      "enum": [
+        "hot_stocks",
+        "screener",
+        "ai_analysis"
+      ],
+      "description": "Type of scan"
+    },
+    "results": {
+      "type": "array",
+      "description": "Scan results as JSON array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ticker": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "change_pct": {
+            "type": "number"
+          },
+          "volume": {
+            "type": "number"
+          },
+          "market_cap": {
+            "type": "number"
+          },
+          "float_shares": {
+            "type": "number"
+          },
+          "short_interest": {
+            "type": "number"
+          },
+          "rvol": {
+            "type": "number"
+          },
+          "atr": {
+            "type": "number"
+          },
+          "rsi": {
+            "type": "number"
+          },
+          "vwap": {
+            "type": "number"
+          },
+          "gap_pct": {
+            "type": "number"
+          },
+          "score": {
+            "type": "number"
+          },
+          "signals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "filters_applied": {
+      "type": "string",
+      "description": "JSON string of filters used"
+    }
+  },
+  "required": [
+    "scan_type"
+  ]
+}

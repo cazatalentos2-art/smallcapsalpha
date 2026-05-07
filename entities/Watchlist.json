@@ -1,0 +1,29 @@
+{
+  "name": "Watchlist",
+  "type": "object",
+  "properties": {
+    "ticker": {
+      "type": "string",
+      "description": "Stock ticker symbol"
+    },
+    "name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "notes": {
+      "type": "string",
+      "description": "User notes"
+    },
+    "target_price": {
+      "type": "number",
+      "description": "Target price"
+    },
+    "stop_loss": {
+      "type": "number",
+      "description": "Stop loss price"
+    }
+  },
+  "required": [
+    "ticker"
+  ]
+}
