@@ -1,0 +1,61 @@
+{
+  "name": "AppUser",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "User email"
+    },
+    "password_hash": {
+      "type": "string",
+      "description": "Hashed password (SHA-256 + salt)"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Full name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "WhatsApp phone number (with country code, e.g. +34612345678)"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Email/account verified"
+    },
+    "two_fa_code": {
+      "type": "string",
+      "description": "Current 2FA code (6 digits)"
+    },
+    "two_fa_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the 2FA code expires"
+    },
+    "two_fa_attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Failed 2FA attempts"
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last successful login"
+    },
+    "session_token": {
+      "type": "string",
+      "description": "Current session token"
+    },
+    "session_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Session expiry"
+    }
+  },
+  "required": [
+    "email",
+    "password_hash",
+    "full_name",
+    "phone"
+  ]
+}
