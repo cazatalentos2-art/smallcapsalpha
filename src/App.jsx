@@ -1,9 +1,8 @@
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "./components/ui/toaster";
 import { Toaster as Sonner } from "sonner";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import PageNotFound from "./lib/PageNotFound";
-
-import { AppAuthProvider, useAppAuth } from "@/lib/AppAuthContext";
+import { AppAuthProvider, useAppAuth } from "./lib/AppAuthContext";
 
 import AppLayout from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
@@ -48,7 +47,6 @@ function AppRoutes() {
       <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
       <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route path="/verify-2fa" element={<TwoFactorPage />} />
-
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/screener" element={<Screener />} />
@@ -57,7 +55,6 @@ function AppRoutes() {
         <Route path="/stock/:ticker" element={<StockDetail />} />
         <Route path="/ai-analysis" element={<AIAnalysis />} />
       </Route>
-
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
