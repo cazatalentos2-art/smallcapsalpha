@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import api from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,58 +18,18 @@ export default function AIAnalysis() {
     if (!ticker.trim()) return;
     setIsAnalyzing(true);
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are an expert stock analyst specializing in small cap momentum plays and volatility trading. Analyze the stock ${ticker.toUpperCase()} in detail.
+    try {
+      const result = await api.post('ai-analysis.php', {
+        ticker: ticker.toUpperCase().trim()
+      });
 
-Provide:
-1. A volatility score (0-100) based on current technical setup
-2. Pattern classification: what technical pattern is forming (e.g. bull flag, cup and handle, squeeze setup, breakout, consolidation)
-3. Historical comparison: compare current setup to similar past runners - name 2-3 similar historical setups
-4. Probability estimate: what's the probability of continuation (bull or bear)
-5. Key support and resistance levels
-6. Risk assessment
-7. Recommended entry, target, and stop loss
-8. Overall analysis summary in Spanish
-
-Be specific with numbers and levels.`,
-      add_context_from_internet: true,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          ticker: { type: "string" },
-          name: { type: "string" },
-          volatility_score: { type: "number" },
-          pattern: { type: "string" },
-          pattern_description: { type: "string" },
-          historical_comparisons: { 
-            type: "array", 
-            items: { 
-              type: "object", 
-              properties: { 
-                ticker: { type: "string" }, 
-                date: { type: "string" }, 
-                similarity: { type: "number" },
-                outcome: { type: "string" }
-              } 
-            } 
-          },
-          continuation_probability: { type: "number" },
-          direction: { type: "string" },
-          support_levels: { type: "array", items: { type: "number" } },
-          resistance_levels: { type: "array", items: { type: "number" } },
-          entry_price: { type: "number" },
-          target_price: { type: "number" },
-          stop_loss: { type: "number" },
-          risk_reward_ratio: { type: "number" },
-          risk_level: { type: "string" },
-          analysis_summary: { type: "string" }
-        }
-      },
-      model: "gemini_3_flash"
-    });
-
-    setAnalysis(result);
-    setIsAnalyzing(false);
+      setAnalysis(result);
+    } catch (error) {
+      console.error('Error analizando ticker:', error);
+      setAnalysis(null);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -82,7 +42,6 @@ Be specific with numbers and levels.`,
         <p className="text-xs text-muted-foreground mt-0.5">Clasificación de patrones, comparación histórica y probabilidades</p>
       </div>
 
-      {/* Search */}
       <div className="flex gap-2 max-w-md">
         <Input
           value={ticker}
@@ -107,7 +66,6 @@ Be specific with numbers and levels.`,
 
       {analysis && !isAnalyzing && (
         <div className="space-y-4">
-          {/* Header card */}
           <div className="bg-card border border-border rounded-lg p-5">
             <div className="flex items-start justify-between">
               <div>
@@ -125,7 +83,6 @@ Be specific with numbers and levels.`,
             <p className="text-sm text-muted-foreground mt-4 leading-relaxed">{analysis.pattern_description}</p>
           </div>
 
-          {/* Key metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <TrendingUp className="w-4 h-4 text-primary mx-auto mb-1" />
@@ -135,16 +92,19 @@ Be specific with numbers and levels.`,
               </p>
               <p className="text-xs text-muted-foreground capitalize">{analysis.direction}</p>
             </div>
+
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <Target className="w-4 h-4 text-accent mx-auto mb-1" />
               <p className="text-[10px] text-muted-foreground uppercase">R:R Ratio</p>
               <p className="font-mono text-lg font-bold text-accent">{analysis.risk_reward_ratio?.toFixed(1)}</p>
             </div>
+
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <AlertTriangle className="w-4 h-4 text-destructive mx-auto mb-1" />
               <p className="text-[10px] text-muted-foreground uppercase">Riesgo</p>
               <p className="font-mono text-lg font-bold capitalize">{analysis.risk_level}</p>
             </div>
+
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <BarChart3 className="w-4 h-4 text-chart-4 mx-auto mb-1" />
               <p className="text-[10px] text-muted-foreground uppercase">Vol Score</p>
@@ -154,7 +114,6 @@ Be specific with numbers and levels.`,
             </div>
           </div>
 
-          {/* Trade plan */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-card border border-border rounded-lg p-5">
               <h3 className="text-sm font-semibold mb-3">Plan de Trading</h3>
@@ -173,24 +132,27 @@ Be specific with numbers and levels.`,
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">Soportes</p>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     {analysis.support_levels?.map((l, i) => (
-                      <Badge key={i} variant="outline" className="font-mono text-xs border-primary/30 text-primary">${l?.toFixed(2)}</Badge>
+                      <Badge key={i} variant="outline" className="font-mono text-xs border-primary/30 text-primary">
+                        ${l?.toFixed(2)}
+                      </Badge>
                     ))}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">Resistencias</p>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     {analysis.resistance_levels?.map((l, i) => (
-                      <Badge key={i} variant="outline" className="font-mono text-xs border-destructive/30 text-destructive">${l?.toFixed(2)}</Badge>
+                      <Badge key={i} variant="outline" className="font-mono text-xs border-destructive/30 text-destructive">
+                        ${l?.toFixed(2)}
+                      </Badge>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Historical comps */}
             <div className="bg-card border border-border rounded-lg p-5">
               <h3 className="text-sm font-semibold mb-3">Setups Similares Históricos</h3>
               <div className="space-y-3">
@@ -208,7 +170,6 @@ Be specific with numbers and levels.`,
             </div>
           </div>
 
-          {/* Summary */}
           <div className="bg-card border border-border rounded-lg p-5">
             <h3 className="text-sm font-semibold mb-3">Resumen del Análisis</h3>
             <div className="text-sm text-muted-foreground leading-relaxed prose prose-invert prose-sm max-w-none">

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowUpDown, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
+import api from '@/api/api';
 import StockRow from './StockRow';
 
 const columns = [
@@ -17,14 +17,14 @@ const columns = [
   { key: 'score', label: 'Score', align: 'center' },
 ];
 
-export default function StockTable({ stocks, watchlistTickers = [], isLoading }) {
+export default function StockTable({ stocks = [], watchlistTickers = [], isLoading }) {
   const [sortKey, setSortKey] = useState('score');
   const [sortDir, setSortDir] = useState(-1);
   const queryClient = useQueryClient();
 
   const handleSort = (key) => {
     if (sortKey === key) {
-      setSortDir(d => d * -1);
+      setSortDir((d) => d * -1);
     } else {
       setSortKey(key);
       setSortDir(-1);
@@ -32,19 +32,29 @@ export default function StockTable({ stocks, watchlistTickers = [], isLoading })
   };
 
   const sorted = [...stocks].sort((a, b) => {
-    const aVal = a[sortKey] ?? 0;
-    const bVal = b[sortKey] ?? 0;
-    if (typeof aVal === 'string') return aVal.localeCompare(bVal) * sortDir;
+    const aVal = a?.[sortKey] ?? 0;
+    const bVal = b?.[sortKey] ?? 0;
+
+    if (typeof aVal === 'string' || typeof bVal === 'string') {
+      return String(aVal).localeCompare(String(bVal), 'es', { numeric: true }) * sortDir;
+    }
+
     return (aVal - bVal) * sortDir;
   });
 
   const handleAddWatchlist = async (stock) => {
-    if (watchlistTickers.includes(stock.ticker)) return;
-    await base44.entities.Watchlist.create({
-      ticker: stock.ticker,
-      name: stock.name,
-    });
-    queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+    if (!stock?.ticker || watchlistTickers.includes(stock.ticker)) return;
+
+    try {
+      await api.post('watchlist.php', {
+        ticker: stock.ticker,
+        name: stock.name || ''
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+    } catch (error) {
+      console.error('Error al añadir a watchlist:', error);
+    }
   };
 
   return (
@@ -53,7 +63,7 @@ export default function StockTable({ stocks, watchlistTickers = [], isLoading })
         <h3 className="text-sm font-semibold">Screener en Tiempo Real</h3>
         <span className="text-xs text-muted-foreground font-mono">{stocks.length} acciones</span>
       </div>
-      
+
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -64,12 +74,12 @@ export default function StockTable({ stocks, watchlistTickers = [], isLoading })
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-secondary/30">
-                {columns.map(col => (
+                {columns.map((col) => (
                   <th
                     key={col.key}
                     onClick={() => col.key !== 'signals' && handleSort(col.key)}
                     className={cn(
-                      "py-2.5 px-3 text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none",
+                      'py-2.5 px-3 text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none',
                       col.align === 'right' && 'text-right',
                       col.align === 'center' && 'text-center'
                     )}
@@ -85,7 +95,7 @@ export default function StockTable({ stocks, watchlistTickers = [], isLoading })
               </tr>
             </thead>
             <tbody>
-              {sorted.map(stock => (
+              {sorted.map((stock) => (
                 <StockRow
                   key={stock.ticker}
                   stock={stock}

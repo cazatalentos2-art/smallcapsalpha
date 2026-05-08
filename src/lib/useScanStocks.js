@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
-import { base44 } from '@/api/base44Client';
+import api from '@/api/api';
 
-// Sample data generator for when LLM data isn't available
 function generateSampleData() {
   const tickers = [
     { ticker: 'MARA', name: 'Marathon Digital', sector: 'Crypto Mining' },
@@ -80,70 +79,39 @@ export function useScanStocks() {
   const [stocks, setStocks] = useState([]);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScan, setLastScan] = useState(null);
+  const [scanError, setScanError] = useState(null);
 
   const scanStocks = useCallback(async (useAI = false) => {
     setIsScanning(true);
-    
-    if (useAI) {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a stock market analyst. Search for the current most volatile and trending US small cap stocks (market cap $50M - $2B) on NASDAQ, NYSE, and AMEX. 
-        
-        Find 12-15 stocks that show signs of:
-        - Unusual volume (RVOL > 2)
-        - Price momentum (gap ups, breakouts)
-        - High short interest potential squeeze candidates
-        - Low float runners
-        
-        For each stock provide realistic current data.`,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            stocks: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  ticker: { type: "string" },
-                  name: { type: "string" },
-                  sector: { type: "string" },
-                  price: { type: "number" },
-                  change_pct: { type: "number" },
-                  volume: { type: "number" },
-                  market_cap: { type: "number" },
-                  float_shares: { type: "number" },
-                  short_interest: { type: "number" },
-                  rvol: { type: "number" },
-                  atr: { type: "number" },
-                  rsi: { type: "number" },
-                  vwap: { type: "number" },
-                  gap_pct: { type: "number" },
-                  score: { type: "number" },
-                  signals: { type: "array", items: { type: "string" } }
-                }
-              }
-            }
-          }
-        },
-        model: "gemini_3_flash"
-      });
+    setScanError(null);
 
-      if (result?.stocks && result.stocks.length > 0) {
-        const sorted = result.stocks.sort((a, b) => (b.score || 0) - (a.score || 0));
+    try {
+      const result = await api.post('scan-stocks.php', { useAI });
+
+      const data = Array.isArray(result?.stocks) ? result.stocks : [];
+      if (data.length > 0) {
+        const sorted = [...data].sort((a, b) => (b.score || 0) - (a.score || 0));
         setStocks(sorted);
         setLastScan(new Date());
-        setIsScanning(false);
         return sorted;
       }
+
+      const fallback = generateSampleData();
+      setStocks(fallback);
+      setLastScan(new Date());
+      return fallback;
+    } catch (error) {
+      console.error('Error escaneando acciones:', error);
+      setScanError(error.message || 'No se pudo completar el escaneo.');
+
+      const fallback = generateSampleData();
+      setStocks(fallback);
+      setLastScan(new Date());
+      return fallback;
+    } finally {
+      setIsScanning(false);
     }
-    
-    // Fallback to sample data
-    const data = generateSampleData();
-    setStocks(data);
-    setLastScan(new Date());
-    setIsScanning(false);
-    return data;
   }, []);
 
-  return { stocks, isScanning, lastScan, scanStocks };
+  return { stocks, isScanning, lastScan, scanError, scanStocks };
 }
