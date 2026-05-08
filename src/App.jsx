@@ -1,19 +1,18 @@
-import { Toaster } from "./components/ui/toaster.jsx";
 import { Toaster as Sonner } from "sonner";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
-import PageNotFound from "./lib/PageNotFound";
-import { AppAuthProvider, useAppAuth } from "./lib/AppAuthContext";
+import PageNotFound from "./lib/PageNotFound.jsx";
+import { AppAuthProvider, useAppAuth } from "./lib/AppAuthContext.jsx";
 
-import AppLayout from "./components/layout/AppLayout";
-import Dashboard from "./pages/Dashboard";
-import Screener from "./pages/Screener";
-import WatchlistPage from "./pages/WatchlistPage";
-import AlertsPage from "./pages/AlertsPage";
-import StockDetail from "./pages/StockDetail";
-import AIAnalysis from "./pages/AIAnalysis";
-import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-import TwoFactorPage from "./pages/auth/TwoFactorPage";
+import AppLayout from "./components/layout/AppLayout.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Screener from "./pages/Screener.jsx";
+import WatchlistPage from "./pages/WatchlistPage.jsx";
+import AlertsPage from "./pages/AlertsPage.jsx";
+import StockDetail from "./pages/StockDetail.jsx";
+import AIAnalysis from "./pages/AIAnalysis.jsx";
+import LoginPage from "./pages/auth/LoginPage.jsx";
+import RegisterPage from "./pages/auth/RegisterPage.jsx";
+import TwoFactorPage from "./pages/auth/TwoFactorPage.jsx";
 
 function ProtectedRoute({ children }) {
   const { session, loading } = useAppAuth();
@@ -66,7 +65,6 @@ function App() {
       <Router>
         <AppRoutes />
       </Router>
-      <Toaster />
       <Sonner richColors position="top-right" />
     </AppAuthProvider>
   );
