@@ -1,4 +1,4 @@
-import { Toaster } from "./components/ui/toaster";
+import { Toaster } from "./components/ui/toaster.jsx";
 import { Toaster as Sonner } from "sonner";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import PageNotFound from "./lib/PageNotFound";
